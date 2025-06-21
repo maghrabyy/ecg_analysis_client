@@ -4,7 +4,7 @@ class RootLayout extends StatelessWidget {
   const RootLayout({
     super.key,
     required this.child,
-    this.title = "ECG Analysis  ",
+    this.title = "ECG Analyzer",
     this.showAppBar = true,
   });
 
@@ -15,12 +15,7 @@ class RootLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: showAppBar
-          ? AppBar(
-              backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-              title: Text("ECG Analysis"),
-            )
-          : null,
+      appBar: showAppBar ? AppBar(title: Text("ECG Analyzer")) : null,
       body: child,
     );
   }

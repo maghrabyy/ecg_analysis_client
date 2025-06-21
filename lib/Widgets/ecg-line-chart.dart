@@ -2,13 +2,15 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 class ECGLineChart extends StatelessWidget {
-  const ECGLineChart({super.key, required this.flSpots});
+  const ECGLineChart({super.key, required this.flSpots, required this.peak});
   final List<FlSpot> flSpots;
+  final double peak;
 
   @override
   Widget build(BuildContext context) {
     return LineChart(
       LineChartData(
+        maxY: peak + 0.1,
         lineBarsData: [
           LineChartBarData(
             spots: flSpots,

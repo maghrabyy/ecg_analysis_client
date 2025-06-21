@@ -1,5 +1,6 @@
 import 'package:ecg_analysis2/Screens/home_screen.dart';
 import 'package:ecg_analysis2/Screens/result-screen.dart';
+import 'package:ecg_analysis2/theme/main-theme.dart';
 import 'package:flutter/material.dart';
 
 void main() async {
@@ -9,15 +10,12 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'ECG Analyzer',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
+      theme: mainTheme,
       initialRoute: "/",
       routes: {
         HomeScreen.path: (context) => const HomeScreen(),

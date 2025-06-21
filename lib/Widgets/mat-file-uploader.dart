@@ -111,7 +111,10 @@ class _MatFileUploaderState extends State<MatFileUploader> {
                       Text('Processing...'),
                     ],
                   )
-                : Text('Pick & Upload .mat File'),
+                : Text(
+                    'Pick & Upload .mat File',
+                    style: TextStyle(color: Color(0xFF1976D2)),
+                  ),
           ),
           SizedBox(height: 20),
           if (_error != null)

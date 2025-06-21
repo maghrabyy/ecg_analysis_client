@@ -22,6 +22,29 @@ class ResultScreen extends StatelessWidget {
         .map((point) => FlSpot(point[0].toDouble(), point[1].toDouble()))
         .toList();
 
+    FlSpot maxYSpot = flSpots.reduce((a, b) => a.y > b.y ? a : b);
+    double peak = maxYSpot.y;
+
+    final Map<String, MaterialColor> conditionColorMap = {
+      "Normal Beat": Colors.green,
+      "Atrial premature beat (APB)": Colors.orange,
+      "Aberrated atrial premature beat": Colors.deepOrange,
+      "Nodal (junctional) premature beat": Colors.amber,
+      "Supraventricular premature beat": Colors.orange,
+      "Premature ventricular contraction (PVC)": Colors.red,
+      "Ventricular escape beat": Colors.red,
+      "Fusion of ventricular and normal beat": Colors.purple,
+      "Left bundle branch block beat (LBBB)": Colors.indigo,
+      "Right bundle branch block beat (RBBB)": Colors.indigo,
+      "Atrial escape beat": Colors.blue,
+      "Paced beat": Colors.teal,
+      "Signal artifact / noise": Colors.grey,
+      "Unknown beat / Unclassified": Colors.blueGrey,
+    };
+
+    final MaterialColor conditionColor =
+        conditionColorMap[classification] ?? Colors.blueGrey;
+
     return RootLayout(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
@@ -29,22 +52,40 @@ class ResultScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           spacing: 8,
           children: [
-            InfoCard(
-              icon: Icons.medical_information,
-              title: "Record ID",
-              value: 'CASE-$recordId',
-              iconColor: Colors.blueAccent,
-            ),
-            InfoCard(
-              icon: Icons.favorite,
-              title: "Heart Rate",
-              value: '$heartRate BPM',
-            ),
-            InfoCard(
-              icon: Icons.analytics,
-              title: "Condition",
-              value: classification,
-              iconColor: Colors.blueGrey,
+            IntrinsicHeight(
+              child: Row(
+                spacing: 8,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: InfoCard(
+                      icon: Icons.medical_information,
+                      title: "Record ID",
+                      value: 'CASE-$recordId',
+                      iconColor: Colors.blue,
+                      backgroundColor: Colors.blue[200],
+                    ),
+                  ),
+                  Expanded(
+                    child: InfoCard(
+                      icon: Icons.favorite,
+                      title: "Heart Rate",
+                      value: '$heartRate BPM',
+                      iconColor: Colors.red,
+                      backgroundColor: Colors.red[200],
+                    ),
+                  ),
+                  Expanded(
+                    child: InfoCard(
+                      icon: Icons.analytics,
+                      title: "Condition",
+                      value: classification,
+                      iconColor: conditionColor,
+                      backgroundColor: conditionColor[200],
+                    ),
+                  ),
+                ],
+              ),
             ),
 
             Expanded(
@@ -74,7 +115,9 @@ class ResultScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 16),
-                    Expanded(child: ECGLineChart(flSpots: flSpots)),
+                    Expanded(
+                      child: ECGLineChart(flSpots: flSpots, peak: peak),
+                    ),
                   ],
                 ),
               ),
