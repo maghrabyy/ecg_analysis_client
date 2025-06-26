@@ -12,9 +12,9 @@ class ResultScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     Map<String, dynamic> response =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
-
+    print(response);
     String classification = response['predicted_class'];
-    List<dynamic> rawECG = response['ecg_segment'];
+    List<dynamic> rawECG = response['ecg_waveform'];
     double heartRate = response['BPM'];
     String recordId = response['name'];
 

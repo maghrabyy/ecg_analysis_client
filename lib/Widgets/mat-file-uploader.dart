@@ -15,7 +15,7 @@ class _MatFileUploaderState extends State<MatFileUploader> {
   String? _error;
 
   // Replace with your server URL
-  final String serverUrl = "http://100.65.244.152:8000/predict-mat";
+  final String serverUrl = "http://10.0.2.2:8000/predict-mat";
 
   Future<void> _pickAndUploadFile() async {
     try {
