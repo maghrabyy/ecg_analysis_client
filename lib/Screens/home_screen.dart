@@ -28,14 +28,14 @@ class HomeScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(height: 8),
               const Text(
                 'Upload a .mat file to analyze ECG signals\nand classify the heartbeats automatically.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.black54),
+                style: TextStyle(fontSize: 16, color: Colors.white60),
               ),
               const SizedBox(height: 32),
               MatFileUploader(),
@@ -44,7 +44,7 @@ class HomeScreen extends StatelessWidget {
                 'Supported format: MIT-BIH .mat files',
                 style: Theme.of(
                   context,
-                ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                ).textTheme.bodySmall?.copyWith(color: Colors.white54),
               ),
             ],
           ),

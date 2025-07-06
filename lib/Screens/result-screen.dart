@@ -4,17 +4,119 @@ import 'package:ecg_analysis2/Widgets/info-card.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-class ResultScreen extends StatelessWidget {
+class ResultScreen extends StatefulWidget {
   static const String path = '/result';
   const ResultScreen({super.key});
+
+  @override
+  State<ResultScreen> createState() => _ResultScreenState();
+}
+
+class _ResultScreenState extends State<ResultScreen>
+    with SingleTickerProviderStateMixin {
+  AnimationController? _animationController;
+  Animation<double>? _animation;
+  double _totalDuration = 0.0;
+  double _currentInstantBPM = 0.0;
+  bool _isInitialized = false;
+
+  // Animation parameters
+  final double windowDuration = 10.0;
+  final double scrollSpeed = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    // Animation controller will be initialized after we get the data
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Only initialize once
+    if (_isInitialized) return;
+
+    // Get the response data
+    Map<String, dynamic> response =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
+    List<dynamic> rawECG = response['waveform_xy'];
+    List<dynamic> beats = response['beats'];
+    double heartRate = response['BPM'];
+
+    // Calculate total duration from ECG data
+    if (rawECG.isNotEmpty) {
+      _totalDuration = rawECG.last[0].toDouble();
+    }
+
+    // Initialize animation controller
+    _animationController = AnimationController(
+      duration: Duration(
+        milliseconds: ((_totalDuration / scrollSpeed) * 1000).round(),
+      ),
+      vsync: this,
+    );
+
+    _animation = Tween<double>(begin: 0.0, end: _totalDuration).animate(
+      CurvedAnimation(parent: _animationController!, curve: Curves.linear),
+    );
+
+    // Listen to animation changes to update instant BPM
+    _animation!.addListener(() {
+      _updateInstantBPM(_animation!.value, beats, heartRate);
+    });
+
+    // Start the animation
+    _animationController!.repeat();
+
+    _isInitialized = true;
+  }
+
+  void _updateInstantBPM(
+    double currentTime,
+    List<dynamic> beats,
+    double defaultBPM,
+  ) {
+    // Handle wrap-around when animation loops
+    double actualTime = currentTime;
+    if (actualTime >= _totalDuration) {
+      actualTime = actualTime % _totalDuration;
+    }
+
+    // Find the closest beat data for the current time
+    double closestBPM = defaultBPM;
+    double minTimeDiff = double.infinity;
+
+    for (var beat in beats) {
+      double beatTime = beat['time'].toDouble();
+      double timeDiff = (beatTime - actualTime).abs();
+
+      if (timeDiff < minTimeDiff) {
+        minTimeDiff = timeDiff;
+        closestBPM = beat['instant_BPM'].toDouble();
+      }
+    }
+
+    // Update the instant BPM if it changed
+    if (_currentInstantBPM != closestBPM) {
+      setState(() {
+        _currentInstantBPM = closestBPM;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _animationController?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     Map<String, dynamic> response =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
-    print(response);
     String classification = response['predicted_class'];
-    List<dynamic> rawECG = response['ecg_waveform'];
+    List<dynamic> rawECG = response['waveform_xy'];
     double heartRate = response['BPM'];
     String recordId = response['name'];
 
@@ -23,7 +125,9 @@ class ResultScreen extends StatelessWidget {
         .toList();
 
     FlSpot maxYSpot = flSpots.reduce((a, b) => a.y > b.y ? a : b);
-    double peak = maxYSpot.y;
+    FlSpot minYSpot = flSpots.reduce((a, b) => a.y < b.y ? a : b);
+    double positivePeak = maxYSpot.y;
+    double negativePeak = minYSpot.y;
 
     final Map<String, MaterialColor> conditionColorMap = {
       "Normal Beat": Colors.green,
@@ -44,6 +148,9 @@ class ResultScreen extends StatelessWidget {
 
     final MaterialColor conditionColor =
         conditionColorMap[classification] ?? Colors.blueGrey;
+
+    // Use instant BPM if available, otherwise use default
+    double displayBPM = _currentInstantBPM > 0 ? _currentInstantBPM : heartRate;
 
     return RootLayout(
       child: Padding(
@@ -70,7 +177,7 @@ class ResultScreen extends StatelessWidget {
                     child: InfoCard(
                       icon: Icons.favorite,
                       title: "Heart Rate",
-                      value: '$heartRate BPM',
+                      value: '${displayBPM.toStringAsFixed(0)} BPM',
                       iconColor: Colors.red,
                       backgroundColor: Colors.red[200],
                     ),
@@ -87,36 +194,93 @@ class ResultScreen extends StatelessWidget {
                 ],
               ),
             ),
-
             Expanded(
               child: Container(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Colors.black,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 6,
-                      offset: Offset(0, 3),
+                      color: Colors.grey.withOpacity(0.3),
+                      spreadRadius: 2,
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'ECG Waveform',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.teal.shade700,
-                      ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.monitor_heart,
+                          color: Colors.green,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Live ECG Monitor',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.green, width: 1),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: Colors.green,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Text(
+                                'LIVE',
+                                style: TextStyle(
+                                  color: Colors.green,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     Expanded(
-                      child: ECGLineChart(flSpots: flSpots, peak: peak),
+                      child: _animation != null
+                          ? AnimatedECGLineChart(
+                              flSpots: flSpots,
+                              positivePeak: positivePeak,
+                              negativePeak: negativePeak,
+                              windowDuration: windowDuration,
+                              animation: _animation!,
+                              totalDuration: _totalDuration,
+                            )
+                          : const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.green,
+                              ),
+                            ),
                     ),
                   ],
                 ),

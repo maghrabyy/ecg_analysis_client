@@ -15,7 +15,8 @@ class _MatFileUploaderState extends State<MatFileUploader> {
   String? _error;
 
   // Replace with your server URL
-  final String serverUrl = "http://10.0.2.2:8000/predict-mat";
+  final String serverUrl =
+      "https://ab89-197-133-246-85.ngrok-free.app/predict-mat";
 
   Future<void> _pickAndUploadFile() async {
     try {
@@ -108,7 +109,10 @@ class _MatFileUploaderState extends State<MatFileUploader> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                       SizedBox(width: 10),
-                      Text('Processing...'),
+                      Text(
+                        'Processing...',
+                        style: TextStyle(color: Color(0xFF1976D2)),
+                      ),
                     ],
                   )
                 : Text(
